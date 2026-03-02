@@ -1,0 +1,13 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/minimarket
+    username: postgres
+    password: 8179538
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
