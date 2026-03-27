@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -37,9 +38,20 @@ public class SecurityConfig {
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
             .authorizeHttpRequests(auth -> auth
+
+                // ✅ Public APIs
                 .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers("/uploads/**").permitAll() // allow images
-                .requestMatchers("/api/products/**").permitAll()
+                .requestMatchers("/uploads/**").permitAll()
+
+                // ✅ Public product viewing
+                .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
+
+                // 🔒 Only SELLER can modify products
+                .requestMatchers(HttpMethod.POST, "/api/products/**").hasRole("SELLER")
+                .requestMatchers(HttpMethod.PUT, "/api/products/**").hasRole("SELLER")
+                .requestMatchers(HttpMethod.DELETE, "/api/products/**").hasRole("SELLER")
+
+                // 🔒 Everything else requires login
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);

@@ -4,10 +4,11 @@ import com.minimarket.backend.dto.OrderResponse;
 import com.minimarket.backend.model.Order;
 import com.minimarket.backend.model.OrderStatus;
 import com.minimarket.backend.repository.OrderRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -18,8 +19,9 @@ public class OrderService {
     @Autowired
     private OrderRepository orderRepository;
 
-    // ✅ CREATE ORDER
-    public Order createOrder(Long productId, String buyerEmail, Integer quantity, Double totalPrice) {
+    // ✅ CREATE ORDER (Buyer)
+    public Order createOrder(Long productId, String buyerEmail,
+                             Integer quantity, Double totalPrice) {
 
         Order order = new Order();
 
@@ -28,42 +30,38 @@ public class OrderService {
         order.setQuantity(quantity);
         order.setTotalPrice(totalPrice);
         order.setOrderTime(LocalDateTime.now());
-
-        // 🔥 ADD THIS HERE
-        order.setStatus(OrderStatus.PLACED);
+        order.setStatus(OrderStatus.PLACED); // default status
 
         return orderRepository.save(order);
     }
 
-    // ✅ GET BUYER ORDERS
+    // ✅ GET BUYER ORDERS (Pagination)
     public Page<OrderResponse> getBuyerOrders(String buyerEmail, Pageable pageable) {
 
-    return orderRepository.findByBuyerEmail(buyerEmail, pageable)
-            .map(order -> new OrderResponse(
-                    order.getId(),
-                    order.getProductId(),
-                    order.getQuantity(),
-                    order.getTotalPrice(),
-                    order.getStatus(),
-                    order.getOrderTime()
-            ));
-}
+        return orderRepository.findByBuyerEmail(buyerEmail, pageable)
+                .map(order -> new OrderResponse(
+                        order.getId(),
+                        order.getProductId(),
+                        order.getQuantity(),
+                        order.getTotalPrice(),
+                        order.getStatus(),
+                        order.getOrderTime()
+                ));
+    }
 
+    // ✅ GET ALL ORDERS (Admin)
+    public List<Order> getAllOrders() {
+        return orderRepository.findAll();
+    }
 
+    // ✅ UPDATE ORDER STATUS (Admin)
+    public Order updateOrderStatus(Long orderId, OrderStatus status) {
 
-            // ✅ UPDATE STATUS (Admin)
-            public Order updateOrderStatus(Long orderId, OrderStatus status) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
 
-                Order order = orderRepository.findById(orderId)
-                        .orElseThrow(() -> new RuntimeException("Order not found"));
+        order.setStatus(status);
 
-                order.setStatus(status);
-
-                return orderRepository.save(order);
-            }
-
-            // ✅ GET ALL ORDERS
-            public List<Order> getAllOrders() {
-                return orderRepository.findAll();
-            }
+        return orderRepository.save(order);
+    }
 }

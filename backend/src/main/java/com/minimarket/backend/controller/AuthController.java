@@ -9,11 +9,11 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
 import com.minimarket.backend.dto.LoginRequest;
-import com.minimarket.backend.dto.LoginResponse;
 import com.minimarket.backend.security.JwtUtil;
 import com.minimarket.backend.model.User;
 import com.minimarket.backend.repository.UserRepository;
 
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -39,38 +39,41 @@ public class AuthController {
         return authService.register(request);
     }
 
-@PostMapping("/login")
-public ResponseEntity<?> login(@RequestBody LoginRequest request) {
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
 
-    System.out.println("LOGIN ATTEMPT: " + request.getEmail());
-    System.out.println("PASSWORD ENTERED: " + request.getPassword());
+        System.out.println("LOGIN ATTEMPT: " + request.getEmail());
+        System.out.println("PASSWORD ENTERED: " + request.getPassword());
 
-    try {
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.getEmail(),
-                        request.getPassword()
-                )
-        );
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            request.getEmail(),
+                            request.getPassword()
+                    )
+            );
 
-        System.out.println("AUTHENTICATION SUCCESS");
+            System.out.println("AUTHENTICATION SUCCESS");
 
-    } catch (Exception e) {
+        } catch (Exception e) {
 
-        System.out.println("AUTHENTICATION FAILED: " + e.getMessage());
-        e.printStackTrace();
+            System.out.println("AUTHENTICATION FAILED: " + e.getMessage());
+            e.printStackTrace();
 
-        return ResponseEntity.status(401).body("Invalid credentials");
+            return ResponseEntity.status(401).body("Invalid credentials");
+        }
+
+        // ✅ Fetch user from DB
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // ✅ Generate token
+        String token = jwtUtil.generateToken(request.getEmail(), user.getRole());
+
+        // ✅ RETURN TOKEN + ROLE (FIX)
+        return ResponseEntity.ok(Map.of(
+                "token", token,
+                "role", user.getRole().name()
+        ));
     }
-
-    User user = userRepository.findByEmail(request.getEmail())
-            .orElseThrow(() -> new RuntimeException("User not found"));
-
-    String token = jwtUtil.generateToken(request.getEmail(), user.getRole());
-
-    return ResponseEntity.ok(new LoginResponse(token));
 }
-    }
-
-
-

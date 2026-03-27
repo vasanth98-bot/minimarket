@@ -21,25 +21,43 @@ function Login() {
       console.log("STATUS:", response.status);
       console.log("FULL RESPONSE:", response.data);
 
+      // ✅ Extract token
       const token = response.data.token || response.data.jwt || response.data;
 
+      // ✅ Extract role (IMPORTANT)
+      const role = response.data.role;
+
       console.log("EXTRACTED TOKEN:", token);
+      console.log("EXTRACTED ROLE:", role);
 
       if (!token) {
         alert("Token not received from backend");
         return;
       }
 
-      localStorage.setItem("token", token);
-      console.log("Token saved successfully!");
+      if (!role) {
+        alert("Role not received from backend");
+        return;
+      }
 
-      navigate("/buyer");
+      // ✅ Save both token and role
+      localStorage.setItem("token", token);
+      localStorage.setItem("role", role.toUpperCase());
+
+      console.log("Token & Role saved successfully!");
+
+      // ✅ Role-based redirect
+      if (role === "SELLER") {
+        navigate("/seller");
+      } else {
+        navigate("/buyer");
+      }
     } catch (error) {
       console.error("FULL ERROR OBJECT:", error);
       console.error("STATUS:", error.response?.status);
       console.error("DATA:", error.response?.data);
 
-      alert("See console for error");
+      alert("Login failed. Check console for error.");
     }
   };
 

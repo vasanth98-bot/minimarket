@@ -1,9 +1,26 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import API from "../Services/api";
 
 function Orders() {
-  const [orders] = useState(() => {
-    return JSON.parse(localStorage.getItem("orders")) || [];
-  });
+  const [orders, setOrders] = useState([]);
+
+  useEffect(() => {
+    const loadOrders = async () => {
+      try {
+        const response = await API.get("/orders/my-orders");
+
+        if (response.data && response.data.content) {
+          setOrders(response.data.content);
+        } else {
+          setOrders([]);
+        }
+      } catch (error) {
+        console.error("Error fetching orders:", error);
+      }
+    };
+
+    loadOrders(); // ✅ call inside effect
+  }, []);
 
   return (
     <div style={{ padding: "20px" }}>
@@ -12,9 +29,9 @@ function Orders() {
       {orders.length === 0 ? (
         <p>No orders yet</p>
       ) : (
-        orders.map((order, index) => (
+        orders.map((order) => (
           <div
-            key={index}
+            key={order.orderId}
             style={{
               border: "1px solid #ccc",
               padding: "15px",
@@ -22,21 +39,27 @@ function Orders() {
               borderRadius: "8px",
             }}
           >
-            <h4>Order #{index + 1}</h4>
+            <h4>Order #{order.orderId}</h4>
+
             <p>
-              <strong>Date:</strong> {order.date}
+              <strong>Product ID:</strong> {order.productId}
+            </p>
+            <p>
+              <strong>Quantity:</strong> {order.quantity}
+            </p>
+            <p>
+              <strong>Total Price:</strong> ₹ {order.totalPrice}
             </p>
 
-            <div style={{ marginTop: "10px" }}>
-              <strong>Items:</strong>
-              {order.items.map((item) => (
-                <div key={item.id} style={{ marginLeft: "10px" }}>
-                  {item.name} - ₹ {item.price}
-                </div>
-              ))}
-            </div>
+            <p>
+              <strong>Status:</strong>{" "}
+              <span style={{ fontWeight: "bold" }}>{order.status}</span>
+            </p>
 
-            <h4 style={{ marginTop: "10px" }}>Total: ₹ {order.total}</h4>
+            <p>
+              <strong>Order Time:</strong>{" "}
+              {new Date(order.orderTime).toLocaleString()}
+            </p>
           </div>
         ))
       )}

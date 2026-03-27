@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
-
 import java.util.List;
 
 @RestController
@@ -23,7 +22,8 @@ public class OrderController {
     @Autowired
     private OrderService orderService;
 
-    // ✅ Place Order (Buyer)
+    // ✅ Place Order (Only BUYER)
+    @PreAuthorize("hasRole('BUYER')")
     @PostMapping("/place")
     public ResponseEntity<Order> placeOrder(
             @RequestParam Long productId,
@@ -43,31 +43,31 @@ public class OrderController {
         return ResponseEntity.ok(order);
     }
 
-    // ✅ Get My Orders (Buyer)
+    // ✅ Get My Orders (Only BUYER)
+    @PreAuthorize("hasRole('BUYER')")
     @GetMapping("/my-orders")
-public ResponseEntity<Page<OrderResponse>> getMyOrders(
-        Authentication authentication,
-        Pageable pageable) {
+    public ResponseEntity<Page<OrderResponse>> getMyOrders(
+            Authentication authentication,
+            Pageable pageable) {
 
-    String buyerEmail = authentication.getName();
+        String buyerEmail = authentication.getName();
 
-    Page<OrderResponse> orders =
-            orderService.getBuyerOrders(buyerEmail, pageable);
+        Page<OrderResponse> orders =
+                orderService.getBuyerOrders(buyerEmail, pageable);
 
-    return ResponseEntity.ok(orders);
-}
+        return ResponseEntity.ok(orders);
+    }
 
-
-    
-    @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping("/admin/all")
+    // ✅ Seller can view all orders
+    @PreAuthorize("hasRole('SELLER')")
+    @GetMapping("/seller/all")
     public ResponseEntity<List<Order>> getAllOrders() {
         return ResponseEntity.ok(orderService.getAllOrders());
     }
 
-    
-    @PreAuthorize("hasRole('ADMIN')")
-    @PutMapping("/admin/update-status/{orderId}")
+    // ✅ Seller can update order status
+    @PreAuthorize("hasRole('SELLER')")
+    @PutMapping("/seller/update-status/{orderId}")
     public ResponseEntity<Order> updateOrderStatus(
             @PathVariable Long orderId,
             @RequestParam OrderStatus status) {

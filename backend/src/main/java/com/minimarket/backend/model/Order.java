@@ -12,70 +12,33 @@ public class Order {
     private Long id;
 
     private Long productId;
-
     private String buyerEmail;
-
     private Integer quantity;
-
     private Double totalPrice;
-
     private LocalDateTime orderTime;
 
     @Enumerated(EnumType.STRING)
-    private OrderStatus status;   // ✅ Added
+    private OrderStatus status;
 
-    public Order() {
-    }
+    public Order() {}
 
-    public Long getId() {
-        return id;
-    }
+    public Long getId() { return id; }
 
-    public Long getProductId() {
-        return productId;
-    }
+    public Long getProductId() { return productId; }
+    public void setProductId(Long productId) { this.productId = productId; }
 
-    public void setProductId(Long productId) {
-        this.productId = productId;
-    }
+    public String getBuyerEmail() { return buyerEmail; }
+    public void setBuyerEmail(String buyerEmail) { this.buyerEmail = buyerEmail; }
 
-    public String getBuyerEmail() {
-        return buyerEmail;
-    }
+    public Integer getQuantity() { return quantity; }
+    public void setQuantity(Integer quantity) { this.quantity = quantity; }
 
-    public void setBuyerEmail(String buyerEmail) {
-        this.buyerEmail = buyerEmail;
-    }
+    public Double getTotalPrice() { return totalPrice; }
+    public void setTotalPrice(Double totalPrice) { this.totalPrice = totalPrice; }
 
-    public Integer getQuantity() {
-        return quantity;
-    }
+    public LocalDateTime getOrderTime() { return orderTime; }
+    public void setOrderTime(LocalDateTime orderTime) { this.orderTime = orderTime; }
 
-    public void setQuantity(Integer quantity) {
-        this.quantity = quantity;
-    }
-
-    public Double getTotalPrice() {
-        return totalPrice;
-    }
-
-    public void setTotalPrice(Double totalPrice) {
-        this.totalPrice = totalPrice;
-    }
-
-    public LocalDateTime getOrderTime() {
-        return orderTime;
-    }
-
-    public void setOrderTime(LocalDateTime orderTime) {
-        this.orderTime = orderTime;
-    }
-
-    public OrderStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(OrderStatus status) {
-        this.status = status;
-    }
+    public OrderStatus getStatus() { return status; }
+    public void setStatus(OrderStatus status) { this.status = status; }
 }

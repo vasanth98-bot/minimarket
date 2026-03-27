@@ -22,7 +22,7 @@ function App() {
         <Route
           path="/buyer"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute requiredRole="BUYER">
               <BuyerDashboard />
             </ProtectedRoute>
           }
@@ -30,7 +30,7 @@ function App() {
         <Route
           path="/cart"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute requiredRole="BUYER">
               <Cart />
             </ProtectedRoute>
           }
@@ -38,7 +38,7 @@ function App() {
         <Route
           path="/orders"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute requiredRole="BUYER">
               <Orders />
             </ProtectedRoute>
           }
@@ -48,7 +48,7 @@ function App() {
         <Route
           path="/seller"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute requiredRole="SELLER">
               <SellerDashboard />
             </ProtectedRoute>
           }
@@ -56,7 +56,7 @@ function App() {
         <Route
           path="/seller/add-product"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute requiredRole="SELLER">
               <AddProduct />
             </ProtectedRoute>
           }
@@ -65,11 +65,14 @@ function App() {
         <Route
           path="/seller/edit-product/:id"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute requiredRole="SELLER">
               <EditProduct />
             </ProtectedRoute>
           }
         />
+
+        {/* ✅ 404 Route (Bonus Fix) */}
+        <Route path="*" element={<h1>Page Not Found</h1>} />
       </Routes>
     </Router>
   );

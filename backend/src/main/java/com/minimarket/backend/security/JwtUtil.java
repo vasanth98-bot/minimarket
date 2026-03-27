@@ -5,6 +5,7 @@ import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Value;
 
 import javax.crypto.SecretKey;
 import java.util.Date;
@@ -12,10 +13,13 @@ import java.util.Date;
 @Component
 public class JwtUtil {
 
-    private final String SECRET_KEY = "minimarket_secret_key_minimarket_secret_key";
+    // ✅ SECRET KEY moved to application.properties
+    @Value("${jwt.secret}")
+    private String secretKey;
 
+    // ✅ Generate signing key using secure secret
     private SecretKey getSigningKey() {
-        return Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
+        return Keys.hmacShaKeyFor(secretKey.getBytes());
     }
 
     // Generate JWT token
@@ -62,7 +66,7 @@ public class JwtUtil {
                     .parseClaimsJws(token)
                     .getBody();
         } catch (ExpiredJwtException e) {
-            // Token expired, return the claims anyway if needed
+            // Token expired, return claims if needed
             return e.getClaims();
         } catch (JwtException e) {
             // Any other JWT parsing error
