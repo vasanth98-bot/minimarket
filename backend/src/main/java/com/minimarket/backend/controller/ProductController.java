@@ -103,4 +103,17 @@ public class ProductController {
         Product savedProduct = productService.updateProduct(id, product);
         return ResponseEntity.ok(savedProduct);
     }
+
+    @GetMapping("/search")
+    public List<Product> searchProducts(@RequestParam String keyword) {
+        return productService.searchProducts(keyword);
+    }
+
+    @PostMapping("/{id}/notify")
+    public ResponseEntity<?> notifyMe(@PathVariable Long id, @AuthenticationPrincipal UserDetails userDetails) {
+        User user = userRepository.findByEmail(userDetails.getUsername())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        productService.notifyMe(id, user.getId());
+        return ResponseEntity.ok("Notification request saved.");
+    }
 }

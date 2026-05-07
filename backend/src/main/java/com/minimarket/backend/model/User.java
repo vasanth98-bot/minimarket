@@ -23,6 +23,14 @@ public class User {
     @Column(nullable = false)
     private Role role;
 
+    @Column(unique = true)
+    private String phone;
+
+    @Enumerated(EnumType.STRING)
+    private LoginType loginType;
+
+    private int rewardPoints = 0;
+
     public User() {}
 
     public Long getId() {
@@ -60,5 +68,29 @@ public class User {
 
     public void setRole(Role role) {
         this.role = role;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    public LoginType getLoginType() {
+        return loginType;
+    }
+
+    public void setLoginType(LoginType loginType) {
+        this.loginType = loginType;
+    }
+
+    public int getRewardPoints() {
+        return rewardPoints;
+    }
+
+    public void setRewardPoints(int rewardPoints) {
+        this.rewardPoints = rewardPoints;
     }
 }

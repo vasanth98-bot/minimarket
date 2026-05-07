@@ -37,6 +37,8 @@ public class AuthService {
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword())); // ✅ correct
         user.setRole(request.getRole());
+        user.setPhone(request.getPhone());
+        user.setLoginType(request.getLoginType() != null ? request.getLoginType() : com.minimarket.backend.model.LoginType.EMAIL);
 
         userRepository.save(user);
 
@@ -59,6 +61,27 @@ public class AuthService {
             throw new RuntimeException("Invalid password");
         }
 
+        return jwtUtil.generateToken(user.getEmail(), user.getRole());
+    }
+
+    // ✅ LOGIN WITH PHONE
+    public String loginWithPhone(String phone, String otp) {
+        // Simulate OTP check
+        if (!"123456".equals(otp)) {
+            throw new RuntimeException("Invalid OTP");
+        }
+
+        User user = userRepository.findByPhone(phone)
+                .orElseThrow(() -> new RuntimeException("User not found with phone"));
+
+        return jwtUtil.generateToken(user.getEmail(), user.getRole());
+    }
+
+    // ✅ LOGIN WITH GOOGLE
+    public String loginWithGoogle(String email, String googleToken) {
+        // Simulate google token verification
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found for Google login"));
         return jwtUtil.generateToken(user.getEmail(), user.getRole());
     }
 }

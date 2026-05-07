@@ -8,7 +8,8 @@ public class RegisterRequest {
     private String email;
     private String password;
     private Role role;   // ✅ FIXED (use enum instead of String)
-
+    private String phone;
+    private com.minimarket.backend.model.LoginType loginType;
     // ✅ Getters & Setters
 
     public String getName() {
@@ -41,5 +42,21 @@ public class RegisterRequest {
 
     public void setRole(Role role) {
         this.role = role;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    public com.minimarket.backend.model.LoginType getLoginType() {
+        return loginType;
+    }
+
+    public void setLoginType(com.minimarket.backend.model.LoginType loginType) {
+        this.loginType = loginType;
     }
 }

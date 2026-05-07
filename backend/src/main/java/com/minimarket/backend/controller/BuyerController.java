@@ -117,11 +117,17 @@ public class BuyerController {
         return ResponseEntity.ok("Cart is empty");
     }
 
+    long pastOrders = orderRepository.countByBuyerEmail(email);
+
     for (Cart cart : cartItems) {
 
         double price = cart.getProduct().getPrice();
         int quantity = cart.getQuantity();
         double total = price * quantity;
+
+        if (pastOrders == 0) {
+            total = total * 0.5;
+        }
 
         Order order = new Order();
 

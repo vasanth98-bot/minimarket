@@ -23,12 +23,18 @@ public class OrderService {
     public Order createOrder(Long productId, String buyerEmail,
                              Integer quantity, Double totalPrice) {
 
+        long pastOrders = orderRepository.countByBuyerEmail(buyerEmail);
+        double finalPrice = totalPrice;
+        if (pastOrders == 0) {
+            finalPrice = totalPrice * 0.5;
+        }
+
         Order order = new Order();
 
         order.setProductId(productId);
         order.setBuyerEmail(buyerEmail);
         order.setQuantity(quantity);
-        order.setTotalPrice(totalPrice);
+        order.setTotalPrice(finalPrice);
         order.setOrderTime(LocalDateTime.now());
         order.setStatus(OrderStatus.PLACED); // default status
 

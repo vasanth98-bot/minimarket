@@ -1,139 +1,130 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import API from "../Services/api";
+import { useNavigate, Link } from "react-router-dom";
+import { supabase } from "../supabaseClient";
 
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [role, setRole] = useState("BUYER");
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    setError("");
 
     try {
-      console.log("Sending login request...");
+      if (!import.meta.env.VITE_SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL === "your_supabase_url_here") {
+        setError("Supabase is not configured. Please add your credentials to the .env file.");
+        return;
+      }
 
-      const response = await API.post("/auth/login", {
+      const { data, error: authError } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
-      console.log("STATUS:", response.status);
-      console.log("FULL RESPONSE:", response.data);
+      if (authError) throw authError;
 
-      // ✅ Extract token
-      const token = response.data.token || response.data.jwt || response.data;
-
-      // ✅ Extract role (IMPORTANT)
-      const role = response.data.role;
-
-      console.log("EXTRACTED TOKEN:", token);
-      console.log("EXTRACTED ROLE:", role);
-
-      if (!token) {
-        alert("Token not received from backend");
-        return;
+      if (data.session) {
+        localStorage.setItem("token", data.session.access_token);
+        localStorage.setItem("role", role); 
+        
+        if (role === "SELLER") {
+          navigate("/seller");
+        } else {
+          navigate("/buyer");
+        }
       }
-
-      if (!role) {
-        alert("Role not received from backend");
-        return;
-      }
-
-      // ✅ Save both token and role
-      localStorage.setItem("token", token);
-      localStorage.setItem("role", role.toUpperCase());
-
-      console.log("Token & Role saved successfully!");
-
-      // ✅ Role-based redirect
-      if (role === "SELLER") {
-        navigate("/seller");
-      } else {
-        navigate("/buyer");
-      }
-    } catch (error) {
-      console.error("FULL ERROR OBJECT:", error);
-      console.error("STATUS:", error.response?.status);
-      console.error("DATA:", error.response?.data);
-
-      alert("Login failed. Check console for error.");
+    } catch (err) {
+      console.error("Login error:", err.message);
+      setError(err.message || "Invalid credentials. Please try again.");
     }
   };
 
   return (
-    <div
-      style={{
-        position: "fixed",
-        top: 0,
-        left: 0,
-        width: "100vw",
-        height: "100vh",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        background: "linear-gradient(135deg, #4e73df, #1cc88a)",
-      }}
-    >
-      <div
-        style={{
-          width: "400px",
-          padding: "40px",
-          backgroundColor: "white",
-          borderRadius: "12px",
-          boxShadow: "0 10px 25px rgba(0,0,0,0.2)",
-          textAlign: "center",
-        }}
-      >
-        <h2 style={{ marginBottom: "25px" }}>Login</h2>
+    <div style={{ minHeight: "calc(100vh - 150px)", display: "flex", justifyContent: "center", alignItems: "center", backgroundColor: "#f1f3f6", padding: "20px" }}>
+      <div style={{ display: "flex", width: "100%", maxWidth: "850px", minHeight: "520px", boxShadow: "0 2px 4px 0 rgba(0,0,0,.2)", backgroundColor: "white" }}>
+        
+        {/* Left Sidebar */}
+        <div style={{ flex: "0 0 320px", backgroundColor: "var(--fk-blue)", padding: "40px 33px", display: "flex", flexDirection: "column", color: "white" }}>
+          <h2 style={{ fontSize: "28px", fontWeight: "600", marginBottom: "20px" }}>Login</h2>
+          <p style={{ fontSize: "18px", lineHeight: "1.5", color: "#dbdbdb" }}>
+            Get access to your Orders, Wishlist and Recommendations
+          </p>
+          <div style={{ marginTop: "auto", textAlign: "center" }}>
+            <img src="https://static-assets-web.flixcart.com/fk-p-linchpin-web/fk-cp-zion/img/login_img_c4a81e.png" alt="login illustration" style={{ maxWidth: "100%" }} />
+          </div>
+        </div>
 
-        <form onSubmit={handleLogin}>
-          <input
-            type="email"
-            placeholder="Enter Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            style={{
-              width: "100%",
-              padding: "12px",
-              marginBottom: "18px",
-              borderRadius: "6px",
-              border: "1px solid #ccc",
-            }}
-          />
+        {/* Right Form Area */}
+        <div style={{ flex: 1, padding: "50px 35px 20px", display: "flex", flexDirection: "column" }}>
+          <form onSubmit={handleLogin} style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+            
+            <div style={{ display: "flex", gap: "20px", marginBottom: "10px" }}>
+              <label style={{ display: "flex", alignItems: "center", gap: "5px", cursor: "pointer", fontSize: "14px" }}>
+                <input type="radio" name="role" value="BUYER" checked={role === "BUYER"} onChange={() => setRole("BUYER")} />
+                Buyer
+              </label>
+              <label style={{ display: "flex", alignItems: "center", gap: "5px", cursor: "pointer", fontSize: "14px" }}>
+                <input type="radio" name="role" value="SELLER" checked={role === "SELLER"} onChange={() => setRole("SELLER")} />
+                Seller
+              </label>
+            </div>
 
-          <input
-            type="password"
-            placeholder="Enter Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            style={{
-              width: "100%",
-              padding: "12px",
-              marginBottom: "20px",
-              borderRadius: "6px",
-              border: "1px solid #ccc",
-            }}
-          />
+            <div style={{ position: "relative" }}>
+              <input
+                type="email"
+                placeholder="Enter Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                style={{ width: "100%", border: "none", borderBottom: "1px solid #e0e0e0", padding: "10px 0", fontSize: "16px", outline: "none" }}
+              />
+            </div>
 
-          <button
-            type="submit"
-            style={{
-              width: "100%",
-              padding: "12px",
-              backgroundColor: "#4e73df",
-              color: "white",
-              border: "none",
-              borderRadius: "6px",
-              cursor: "pointer",
-              fontWeight: "bold",
-            }}
-          >
-            Login
-          </button>
-        </form>
+            <div style={{ position: "relative" }}>
+              <input
+                type="password"
+                placeholder="Enter Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                style={{ width: "100%", border: "none", borderBottom: "1px solid #e0e0e0", padding: "10px 0", fontSize: "16px", outline: "none" }}
+              />
+            </div>
+
+            <p style={{ fontSize: "12px", color: "var(--fk-text-muted)" }}>
+              By continuing, you agree to Flipkart's Terms of Use and Privacy Policy.
+            </p>
+
+            {error && <p style={{ color: "red", fontSize: "14px" }}>{error}</p>}
+
+            <button
+              type="submit"
+              style={{ backgroundColor: "var(--fk-yellow)", color: "white", padding: "15px", border: "none", borderRadius: "2px", fontWeight: "600", fontSize: "15px", boxShadow: "0 1px 2px 0 rgba(0,0,0,.2)", cursor: "pointer" }}
+            >
+              Login
+            </button>
+            
+            <div style={{ textAlign: "center", marginTop: "10px" }}>
+              <span style={{ fontSize: "14px", color: "var(--fk-text-muted)" }}>OR</span>
+            </div>
+
+            <button
+              type="button"
+              style={{ backgroundColor: "white", color: "var(--fk-blue)", padding: "14px", fontSize: "16px", fontWeight: "600", border: "none", borderRadius: "2px", cursor: "pointer", boxShadow: "0 2px 4px 0 rgba(0,0,0,.2)" }}
+            >
+              Request OTP
+            </button>
+          </form>
+
+          <div style={{ marginTop: "auto", textAlign: "center", paddingTop: "50px" }}>
+            <span style={{ fontSize: "14px", color: "var(--fk-blue)", fontWeight: "600", cursor: "pointer" }}>
+              New to Flipkart? Create an account
+            </span>
+          </div>
+        </div>
       </div>
     </div>
   );

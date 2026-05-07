@@ -9,4 +9,5 @@ import org.springframework.data.domain.Pageable;
 public interface OrderRepository extends JpaRepository<Order, Long> {
 
    Page<Order> findByBuyerEmail(String buyerEmail, Pageable pageable);
+   long countByBuyerEmail(String buyerEmail);
 }

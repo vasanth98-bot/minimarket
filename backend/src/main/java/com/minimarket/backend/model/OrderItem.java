@@ -1,4 +1,4 @@
-package main.java.com.minimarket.backend.model;
+package com.minimarket.backend.model;
 
 import jakarta.persistence.*;
 

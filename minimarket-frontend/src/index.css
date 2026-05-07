@@ -1,12 +1,82 @@
-html,
-body,
-#root {
-  height: 100%;
-  width: 100%;
+:root {
+  --fk-blue: #2874f0;
+  --fk-yellow: #fb641b;
+  --fk-bg: #f1f3f6;
+  --fk-text-main: #212121;
+  --fk-text-muted: #878787;
+  --fk-white: #ffffff;
+  --fk-border: #e0e0e0;
+  --fk-success: #388e3c;
+  --fk-shadow: 0 2px 4px 0 rgba(0,0,0,.08);
+}
+
+* {
   margin: 0;
   padding: 0;
+  box-sizing: border-box;
 }
 
 body {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: Roboto, Arial, sans-serif;
+  background-color: var(--fk-bg);
+  color: var(--fk-text-main);
+  line-height: 1.4;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  outline: none;
+  font-family: inherit;
+}
+
+input {
+  outline: none;
+  font-family: inherit;
+}
+
+/* Common Classes */
+.container {
+  max-width: 1248px;
+  margin: 0 auto;
+  padding: 0 10px;
+}
+
+.flex {
+  display: flex;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+.card {
+  background: var(--fk-white);
+  border-radius: 2px;
+  box-shadow: var(--fk-shadow);
+}
+
+
+/* Navbar Dropdowns */
+.nav-item-more:hover .more-dropdown {
+  display: block !important;
+}
+
+.more-dropdown::before {
+  content: "";
+  position: absolute;
+  top: -8px;
+  right: 55px;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-bottom: 8px solid white;
 }

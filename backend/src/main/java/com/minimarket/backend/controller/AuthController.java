@@ -76,4 +76,32 @@ public class AuthController {
                 "role", user.getRole().name()
         ));
     }
+
+    @PostMapping("/login/phone")
+    public ResponseEntity<?> loginWithPhone(@RequestBody LoginRequest request) {
+        try {
+            String token = authService.loginWithPhone(request.getPhone(), request.getOtp());
+            User user = userRepository.findByPhone(request.getPhone()).orElseThrow();
+            return ResponseEntity.ok(Map.of(
+                    "token", token,
+                    "role", user.getRole().name()
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(401).body("Invalid phone credentials");
+        }
+    }
+
+    @PostMapping("/login/google")
+    public ResponseEntity<?> loginWithGoogle(@RequestBody LoginRequest request) {
+        try {
+            String token = authService.loginWithGoogle(request.getEmail(), request.getGoogleToken());
+            User user = userRepository.findByEmail(request.getEmail()).orElseThrow();
+            return ResponseEntity.ok(Map.of(
+                    "token", token,
+                    "role", user.getRole().name()
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(401).body("Invalid Google credentials");
+        }
+    }
 }

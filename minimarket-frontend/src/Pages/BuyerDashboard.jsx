@@ -1,241 +1,214 @@
 import { useEffect, useState } from "react";
-import API from "../Services/api";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "../supabaseClient";
 
 function BuyerDashboard() {
-  const [search, setSearch] = useState("");
   const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [currentBanner, setCurrentBanner] = useState(0);
   const navigate = useNavigate();
 
-  const BASE_URL = "http://localhost:8080";
+  const banners = [
+    "/C:/Users/angav/.gemini/antigravity/brain/231d2c15-75e8-460e-8f73-5eff6bc0b8b8/ecommerce_banner_1_1778143023499.png",
+    "/C:/Users/angav/.gemini/antigravity/brain/231d2c15-75e8-460e-8f73-5eff6bc0b8b8/ecommerce_banner_2_1778143107748.png"
+  ];
 
-  // 🔎 Search products
-  const searchProducts = async () => {
-    try {
-      if (search.trim() === "") {
-        const res = await API.get("/products");
-        setProducts(res.data);
-        return;
-      }
-
-      const res = await API.get(`/products/search?keyword=${search}`);
-      setProducts(res.data);
-    } catch (err) {
-      console.error("Search error:", err);
-    }
-  };
-
-  // 📦 Load products
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const timer = setInterval(() => {
+      setCurrentBanner((prev) => (prev + 1) % banners.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, []);
 
-    if (!token) {
-      navigate("/");
-      return;
-    }
-
+  useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await API.get("/products");
-        setProducts(response.data);
-      } catch (error) {
-        console.error("Error fetching products:", error);
+        if (!import.meta.env.VITE_SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL === "your_supabase_url_here") {
+          // Comprehensive Sample Data with Stock
+          setProducts([
+            { id: 1, name: "iPhone 15 Pro", price: 129900, category: "Mobiles", image_url: "https://images.unsplash.com/photo-1695048133142-1a20484d256e?w=500&auto=format", stock: 5 },
+            { id: 2, name: "Sony WH-1000XM5", price: 29990, category: "Electronics", image_url: "https://images.unsplash.com/photo-1670057037130-979986bb6076?w=500&auto=format", stock: 0 },
+            { id: 3, name: "MacBook Air M2", price: 114900, category: "Laptops", image_url: "https://images.unsplash.com/photo-1611186871348-b1ec696e52c9?w=500&auto=format", stock: 3 },
+            { id: 4, name: "Samsung Galaxy S24", price: 79999, category: "Mobiles", image_url: "https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?w=500&auto=format", stock: 10 },
+            { id: 5, name: "Adidas Running Shoes", price: 4999, category: "Fashion", image_url: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&auto=format", stock: 2 },
+            { id: 6, name: "Logitech MX Master 3S", price: 9450, category: "Electronics", image_url: "https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=500&auto=format", stock: 0 },
+            { id: 7, name: "Philips Air Fryer", price: 8999, category: "Home", image_url: "https://images.unsplash.com/photo-1585659333124-74c6f15ed31c?w=500&auto=format", stock: 8 },
+            { id: 8, name: "Ray-Ban Aviator", price: 12500, category: "Fashion", image_url: "https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=500&auto=format", stock: 12 },
+          ]);
+          setLoading(false);
+          return;
+        }
+
+        const { data, error: dbError } = await supabase
+          .from('products')
+          .select('*');
+
+        if (dbError) throw dbError;
+        setProducts(data || []);
+      } catch (err) {
+        console.error("Error fetching products from Supabase:", err);
+        setError("Failed to load products. Please configure Supabase.");
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchProducts();
-  }, [navigate]);
+  }, []);
 
-  // 🛒 Add to cart
   const addToCart = (product) => {
-    const existingCart = JSON.parse(localStorage.getItem("cart")) || [];
-
-    const productExists = existingCart.find((item) => item.id === product.id);
-
-    if (productExists) {
-      alert("Product already in cart!");
+    if (product.stock === 0) {
+      alert("Sorry, this item is Out of Stock!");
       return;
     }
 
-    existingCart.push({ ...product, quantity: 1 });
-    localStorage.setItem("cart", JSON.stringify(existingCart));
+    const existingCart = JSON.parse(localStorage.getItem("cart")) || [];
+    const itemInCart = existingCart.find((item) => item.id === product.id);
 
+    if (itemInCart) {
+      if (itemInCart.quantity >= product.stock) {
+        alert("Cannot add more! Only " + product.stock + " units in stock.");
+        return;
+      }
+      itemInCart.quantity += 1;
+    } else {
+      existingCart.push({ ...product, quantity: 1 });
+    }
+
+    localStorage.setItem("cart", JSON.stringify(existingCart));
+    window.dispatchEvent(new Event("storage"));
+    setCartTrigger(prev => prev + 1); // Force badge update
     alert("Product added to cart!");
   };
 
-  // 🚪 Logout
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    navigate("/");
+  const getCartQuantity = (id) => {
+    const cart = JSON.parse(localStorage.getItem("cart")) || [];
+    const item = cart.find(i => i.id === id);
+    return item ? item.quantity : 0;
   };
 
+  if (loading) return <div style={{ textAlign: "center", padding: "100px", fontSize: "20px" }}>Loading MiniMarket...</div>;
+
   return (
-    <div style={{ padding: "30px" }}>
-      {/* HEADER */}
-      <div style={{ display: "flex", justifyContent: "space-between" }}>
-        <h2>All Products</h2>
-
-        <div>
-          <button
-            onClick={() => navigate("/cart")}
-            style={{
-              padding: "8px 15px",
-              marginRight: "10px",
-              backgroundColor: "#28a745",
-              color: "white",
-              border: "none",
-              borderRadius: "6px",
-              cursor: "pointer",
-            }}
-          >
-            View Cart
-          </button>
-
-          <button
-            onClick={handleLogout}
-            style={{
-              padding: "8px 15px",
-              backgroundColor: "red",
-              color: "white",
-              border: "none",
-              borderRadius: "6px",
-              cursor: "pointer",
-            }}
-          >
-            Logout
-          </button>
+    <div style={{ backgroundColor: "#f1f3f6", minHeight: "100vh", paddingBottom: "40px" }}>
+      {/* Banner Carousel */}
+      <div className="container" style={{ marginTop: "10px" }}>
+        <div style={{
+          width: "100%",
+          height: "280px",
+          borderRadius: "4px",
+          overflow: "hidden",
+          position: "relative",
+          boxShadow: "var(--fk-shadow)"
+        }}>
+          <img 
+            src={banners[currentBanner]} 
+            alt="Promotion" 
+            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+          />
         </div>
       </div>
 
-      {/* 🔍 SEARCH */}
-      <div style={{ marginTop: "20px", marginBottom: "20px" }}>
-        <input
-          type="text"
-          placeholder="Search product..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          style={{
-            padding: "10px",
-            width: "250px",
-            borderRadius: "6px",
-            border: "1px solid #ccc",
-            marginRight: "10px",
-          }}
-        />
+      {/* Main Content */}
+      <div className="container" style={{ marginTop: "20px" }}>
+        <div className="card" style={{ padding: "20px", marginBottom: "20px" }}>
+          <div style={{ 
+            display: "flex", 
+            justifyContent: "space-between", 
+            alignItems: "center",
+            borderBottom: "1px solid var(--fk-border)",
+            paddingBottom: "15px",
+            marginBottom: "20px"
+          }}>
+            <div>
+              <h2 style={{ fontSize: "22px", fontWeight: "600" }}>Deals of the Day</h2>
+              <p style={{ color: "var(--fk-text-muted)", fontSize: "14px" }}>Handpicked for you</p>
+            </div>
+          </div>
 
-        <button
-          onClick={searchProducts}
-          style={{
-            padding: "10px 15px",
-            backgroundColor: "#4e73df",
-            color: "white",
-            border: "none",
-            borderRadius: "6px",
-            cursor: "pointer",
-          }}
-        >
-          Search
-        </button>
-      </div>
-
-      {/* PRODUCTS GRID */}
-      {products.length === 0 ? (
-        <p style={{ marginTop: "20px" }}>No products available.</p>
-      ) : (
-        <div
-          style={{
-            marginTop: "30px",
+          <div style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
-            gap: "25px",
-          }}
-        >
-          {products.map((product) => {
-            const imagePath =
-              product.imageUrl && product.imageUrl.startsWith("http")
-                ? product.imageUrl
-                : `${BASE_URL}${product.imageUrl}`;
-
-            return (
-              <div
-                key={product.id}
-                style={{
-                  border: "1px solid #ddd",
-                  borderRadius: "12px",
-                  padding: "20px",
-                  boxShadow: "0 6px 15px rgba(0,0,0,0.1)",
-                  textAlign: "center",
-                  backgroundColor: "#fff",
-                }}
-              >
-                {/* IMAGE */}
-                {product.imageUrl && (
-                  <img
-                    src={imagePath}
-                    alt={product.name}
-                    style={{
-                      width: "100%",
-                      height: "200px",
-                      objectFit: "cover",
+            gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
+            gap: "15px"
+          }}>
+            {products.map((product) => {
+              const qtyInCart = getCartQuantity(product.id);
+              return (
+                <div 
+                  key={product.id}
+                  className="card"
+                  style={{
+                    textAlign: "center",
+                    padding: "15px",
+                    transition: "transform 0.2s",
+                    opacity: product.stock === 0 ? 0.7 : 1,
+                    position: "relative"
+                  }}
+                >
+                  {qtyInCart > 0 && (
+                    <div style={{
+                      position: "absolute",
+                      top: "10px",
+                      right: "10px",
+                      backgroundColor: "var(--fk-blue)",
+                      color: "white",
+                      padding: "2px 8px",
                       borderRadius: "10px",
-                      marginBottom: "15px",
-                    }}
+                      fontSize: "12px",
+                      fontWeight: "bold"
+                    }}>
+                      {qtyInCart} in cart
+                    </div>
+                  )}
+                  <img 
+                    src={product.image_url || "https://via.placeholder.com/150"} 
+                    alt={product.name}
+                    style={{ width: "100%", height: "150px", objectFit: "contain", marginBottom: "10px" }}
                   />
-                )}
+                  <div style={{ fontWeight: "500", fontSize: "14px", marginBottom: "5px", height: "35px", overflow: "hidden" }}>
+                    {product.name}
+                  </div>
+                  
+                  <div style={{ 
+                    fontSize: "12px", 
+                    fontWeight: "bold", 
+                    color: product.stock > 0 ? "var(--fk-success)" : "#ff6161",
+                    marginBottom: "8px"
+                  }}>
+                    {product.stock > 0 ? `In Stock (${product.stock})` : "Out of Stock"}
+                  </div>
 
-                {/* PRODUCT DETAILS */}
-                <h3>{product.name}</h3>
-
-                <p style={{ color: "#666" }}>{product.description}</p>
-
-                {/* CATEGORY */}
-                {product.category && (
-                  <p style={{ fontSize: "14px", color: "#888" }}>
-                    Category: {product.category}
-                  </p>
-                )}
-
-                <p style={{ fontWeight: "bold", fontSize: "18px" }}>
-                  ₹ {product.price}
-                </p>
-
-                {/* STOCK */}
-                <p
-                  style={{
-                    color: product.quantity > 0 ? "green" : "red",
-                    fontWeight: "bold",
-                  }}
-                >
-                  {product.quantity > 0
-                    ? `In Stock (${product.quantity})`
-                    : "Out of Stock"}
-                </p>
-
-                {/* ADD TO CART */}
-                <button
-                  onClick={() => addToCart(product)}
-                  disabled={product.quantity === 0}
-                  style={{
-                    padding: "10px",
-                    backgroundColor:
-                      product.quantity === 0 ? "gray" : "#4e73df",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "6px",
-                    cursor: product.quantity === 0 ? "not-allowed" : "pointer",
-                    width: "100%",
-                    marginTop: "10px",
-                  }}
-                >
-                  Add to Cart
-                </button>
-              </div>
-            );
-          })}
+                  <div style={{ color: "var(--fk-success)", fontSize: "14px", fontWeight: "500" }}>
+                    ₹{product.price}
+                  </div>
+                  
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); addToCart(product); }}
+                    disabled={product.stock === 0}
+                    style={{
+                      backgroundColor: product.stock === 0 ? "#ccc" : "var(--fk-yellow)",
+                      color: "white",
+                      padding: "8px",
+                      borderRadius: "2px",
+                      fontWeight: "600",
+                      marginTop: "10px",
+                      width: "100%",
+                      border: "none",
+                      cursor: product.stock === 0 ? "not-allowed" : "pointer"
+                    }}
+                  >
+                    {product.stock === 0 ? "SOLD OUT" : "ADD TO CART"}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }
 
 export default BuyerDashboard;
+

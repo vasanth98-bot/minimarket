@@ -16,7 +16,9 @@ public class Product {
     private int quantity;
 
     // ✅ NEW FIELD FOR PRODUCT CATEGORY
-    private String category;
+    @ManyToOne
+    @JoinColumn(name = "category_id")
+    private Category category;
 
     // ✅ Seller relationship
     @ManyToOne
@@ -25,7 +27,7 @@ public class Product {
 
     public Product() {}
 
-    public Product(String name, String description, double price, int quantity, String category) {
+    public Product(String name, String description, double price, int quantity, Category category) {
         this.name = name;
         this.description = description;
         this.price = price;
@@ -84,11 +86,11 @@ public class Product {
     }
 
     // CATEGORY
-    public String getCategory() {
+    public Category getCategory() {
         return category;
     }
 
-    public void setCategory(String category) {
+    public void setCategory(Category category) {
         this.category = category;
     }
 

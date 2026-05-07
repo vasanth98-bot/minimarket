@@ -4,15 +4,19 @@ import BuyerDashboard from "./Pages/BuyerDashboard";
 import SellerDashboard from "./Pages/SellerDashboard";
 import AddProduct from "./Pages/AddProduct";
 import Navbar from "./components/Navbar";
+import CategoryBar from "./components/CategoryBar";
 import Cart from "./Pages/Cart";
 import Orders from "./Pages/Orders";
 import ProtectedRoute from "./components/ProtectedRoute";
 import EditProduct from "./Pages/EditProduct";
+import UserProfile from "./Pages/UserProfile";
+import CustomerCare from "./Pages/CustomerCare";
 
 function App() {
   return (
     <Router>
       <Navbar />
+      <CategoryBar />
 
       <Routes>
         {/* Public Route */}
@@ -43,6 +47,14 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute requiredRole="BUYER">
+              <UserProfile />
+            </ProtectedRoute>
+          }
+        />
 
         {/* Seller Routes */}
         <Route
@@ -69,6 +81,10 @@ function App() {
               <EditProduct />
             </ProtectedRoute>
           }
+        />
+        <Route
+          path="/customer-care"
+          element={<CustomerCare />}
         />
 
         {/* ✅ 404 Route (Bonus Fix) */}
