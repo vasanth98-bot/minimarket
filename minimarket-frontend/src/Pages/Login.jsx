@@ -24,6 +24,9 @@ function Login() {
         password,
       });
 
+      console.log("Auth Data:", data);
+      console.log("Auth Error:", authError);
+
       if (authError) throw authError;
 
       if (data.session) {
